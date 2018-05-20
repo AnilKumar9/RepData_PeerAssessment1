@@ -10,7 +10,8 @@ output:
 
 Downloading the file and unzipping the same before loading into a table: monitering_devices
 
-```{r}
+
+```r
 knitr::opts_chunk$set(message = FALSE,echo = TRUE)
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",destfile = "zipped_file")
 zipped_file<-unzip("zipped_file",exdir="unzipped_data")
@@ -24,7 +25,8 @@ monitering_devices<-read.csv("activity.csv")
 
 Getting the number of steps taken per day in a different table  
 
-```{r}
+
+```r
 library(dplyr)
 by_date_steps<- monitering_devices %>%
   filter(!is.na(steps)) %>%
@@ -34,21 +36,25 @@ by_date_steps$date<-as.Date(by_date_steps$date,origin="1970-01-01")
 ```
 ###Stats of steps by date
 
--Mean of number of steps taken per day is `r mean(by_date_steps$sum_of_steps,na.rm = T)`  
--Median of numer of steps taken per day is `r median(by_date_steps$sum_of_steps,na.rm = T)`
+-Mean of number of steps taken per day is 1.0766189\times 10^{4}  
+-Median of numer of steps taken per day is 10765
 
 ###Plotting steps by date
 
-```{r}
+
+```r
 library(ggplot2)
 ggplot(by_date_steps, aes(x=date,y = sum_of_steps)) +geom_bar(stat = "identity",fill="blue")+theme_bw()
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 
 
 ## What is the average daily activity pattern?
 Getting the number of steps taken per interval in a different table 
-```{r}
+
+```r
 by_interval_steps<- monitering_devices %>%
   filter(!is.na(steps)) %>%
   group_by(interval) %>%
@@ -57,11 +63,12 @@ by_interval_steps<-as.data.frame(by_interval_steps)
 ```
 
 Cleaning Interval values to get them into hh:mm formats
-```{r}
+
+```r
 for (i in (1:nrow(by_interval_steps)))
 {by_interval_steps[i,"interval"]<-paste(paste(rep("0",times=(4-nchar(by_interval_steps[i,"interval"]))),collapse=""),
-                                        as.character(by_interval_steps[i,"interval"]),sep ="",collapse ="")
-}
+                                    as.character(by_interval_steps[i,"interval"]),sep ="",collapse ="")
+  }
 
 
 for (i in (1:nrow(by_interval_steps)))
@@ -70,13 +77,14 @@ for (i in (1:nrow(by_interval_steps)))
 ```
 
 ###Time series plot of average of steps taken 
-```{r}
+
+```r
 hours_labels<-(seq(1,nrow(by_interval_steps),24))
 df<-data.frame(hours_labels=character(),stringsAsFactors=FALSE)
 for (i in 1:length(hours_labels)) 
 {
   df[i,"hours_labels"]<-(by_interval_steps[hours_labels[i],"interval"])
-}
+  }
 
 avector <- as.vector(df[,'hours_labels'])
 
@@ -84,13 +92,16 @@ ggplot(by_interval_steps, aes(x=interval,y = mean_of_steps,group=1)) +geom_line(
   scale_x_discrete(breaks=avector,labels=avector,expand = waiver())
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
-####Five minute interval that has the maximum no of steps is `r head(by_interval_steps[order(-by_interval_steps$mean_of_steps),],1)$interval`
+
+####Five minute interval that has the maximum no of steps is 08:35
 
 ## Imputing missing values
 
 Dividing data set into missing and non missing value
-```{r}
+
+```r
 non_null_data<- monitering_devices %>%
   filter(!is.na(steps))
 null_data<- monitering_devices %>%
@@ -98,10 +109,11 @@ null_data<- monitering_devices %>%
 ```
 
 Handling missing values by alloting them the average of steps we got in step3
-```{r}
+
+```r
 for (i in (1:nrow(null_data)))
 {null_data[i,"interval"]<-paste(paste(rep("0",times=(4-nchar(null_data[i,"interval"]))),collapse=""),
-                                as.character(null_data[i,"interval"]),sep ="",collapse ="")
+                                        as.character(null_data[i,"interval"]),sep ="",collapse ="")
 }
 
 
@@ -119,10 +131,11 @@ names(null_data_transformed)<-names(non_null_data)
 
 Getting the interval column in Non missing data to be in hh:mm format
 
-```{r}
+
+```r
 for (i in (1:nrow(non_null_data)))
 {non_null_data[i,"interval"]<-paste(paste(rep("0",times=(4-nchar(non_null_data[i,"interval"]))),collapse=""),
-                                    as.character(non_null_data[i,"interval"]),sep ="",collapse ="")
+                                as.character(non_null_data[i,"interval"]),sep ="",collapse ="")
 }
 
 
@@ -136,7 +149,8 @@ non_null_data$steps <-as.numeric(non_null_data$steps)
 
 Combining both missing and non missing data with steps allocated for missing data and getting steps by day
 
-```{r}
+
+```r
 moniter_data_transformed<-rbind(null_data_transformed,non_null_data)
 by_date_steps_transformed<- moniter_data_transformed %>%
   group_by(date) %>%
@@ -146,24 +160,28 @@ by_date_steps_transformed$date<-as.Date(by_date_steps_transformed$date,origin="1
 ```
 
 ###Stats of steps taken by date after missing values filled in 
--Mean of number of steps taken per day is `r mean(by_date_steps_transformed$sum_of_steps,na.rm = T)`  
--Median of numer of steps taken per day is `r median(by_date_steps_transformed$sum_of_steps,na.rm = T)`
+-Mean of number of steps taken per day is 1.0766189\times 10^{4}  
+-Median of numer of steps taken per day is 1.0766189\times 10^{4}
 
 ####It is observed that the mean and median stats didnot change by a lot after missing values are imputed.
 
 ###Plotting steps by date after missing values are filled in 
 
-```{r}
+
+```r
 library(ggplot2)
 ggplot(by_date_steps_transformed, aes(x=date,y = sum_of_steps)) +geom_bar(stat = "identity",fill="blue")+theme_bw()
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Calculating Weekday and Weekend based on date
-```{r}
+
+```r
 moniter_data_transformed$day_of_week<-weekdays(as.Date(moniter_data_transformed$date))
 
 for (i in 1:nrow(moniter_data_transformed))
@@ -173,17 +191,21 @@ for (i in 1:nrow(moniter_data_transformed))
     moniter_data_transformed[i,"day_of_week"]<-c("Weekend")
   } else {
     moniter_data_transformed[i,"day_of_week"]<-c("Weekday")
-  }
+}
 }
 ```
 
 Calculating average of steps by interval for Weekdays and weekends.
-```{r}
+
+```r
 by_interval_steps_days<- moniter_data_transformed %>%
   group_by(interval,day_of_week) %>%
   summarize(mean_of_steps=mean(steps))
 ```
 ###Plotting difference between weekends and weekdays
-```{r}
+
+```r
 ggplot(by_interval_steps_days, aes(x=interval,y = mean_of_steps,group=1)) +geom_line(stat = "identity",color="blue")+theme_bw()+facet_grid(day_of_week~.)+  scale_x_discrete(breaks=avector,labels=avector,expand = waiver())
-```  
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
